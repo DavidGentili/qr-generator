@@ -1,0 +1,30 @@
+# Logs
+logs
+*.log
+
+node_modules
+dist
+dist-ssr
+*.local
+build
+bin
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.env*
+
+
+# Cursor
+.cursorrules
+.cursor/
+
+*.service
+RELEASE.md
