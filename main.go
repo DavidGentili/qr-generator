@@ -15,7 +15,10 @@ func main() {
 	}
 
 	qrBuilder := qr.NewQRBuilder(config.ImageSizeParams.QrSize, config.ImageParams.QRColor, config.ImageParams.ColorBackground)
-	imageBuilder := image_builder.NewImageBuilder(config.ImageParams, config.ImageSizeParams)
+	imageBuilder, err := image_builder.NewImageBuilder(config.ImageParams, config.ImageSizeParams)
+	if err != nil {
+		log.Fatalf("[Main] Error al inicializar el image builder: %v", err)
+	}
 
 	router := api.SetupRouter(qrBuilder, imageBuilder)
 	router.Run(config.Port)

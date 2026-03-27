@@ -30,6 +30,7 @@ func (b *QRBuilder) GenerateQR(link string) (*image.Image, error) {
 
 	qr.BackgroundColor = b.parseHexColor(b.BackgroundColor)
 	qr.ForegroundColor = b.parseHexColor(b.QRColor)
+	qr.VersionNumber = 10
 	qr.DisableBorder = true
 	writeError := qr.WriteFile(b.QrSize, "./tmp/qr/qr.png") // Se escribe en fs para probar en local
 	if writeError != nil {

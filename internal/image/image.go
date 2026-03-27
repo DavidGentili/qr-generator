@@ -5,6 +5,10 @@ import (
 	"image"
 	"image/png"
 
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/gomedium"
+	"golang.org/x/image/font/gofont/goregular"
 	"gopkg.in/fogleman/gg.v1"
 )
 
@@ -15,6 +19,10 @@ type StyleImageParams struct {
 	ColorTitle      string
 	ColorSubtitle   string
 	ColorMessage    string
+
+	FontTitleSize    float64
+	FontSubtitleSize float64
+	FontMessageSize  float64
 }
 
 type ImageSizeParams struct {
@@ -31,10 +39,30 @@ type ImageData struct {
 type ImageBuilder struct {
 	StyleParams StyleImageParams
 	SizeParams  ImageSizeParams
+
+	fontTitle    font.Face
+	fontSubtitle font.Face
+	fontMessage  font.Face
 }
 
-func NewImageBuilder(params StyleImageParams, sizeParams ImageSizeParams) *ImageBuilder {
-	return &ImageBuilder{StyleParams: params, SizeParams: sizeParams}
+func NewImageBuilder(params StyleImageParams, sizeParams ImageSizeParams) (*ImageBuilder, error) {
+	regularFont, err := truetype.Parse(goregular.TTF)
+	if err != nil {
+		return nil, err
+	}
+
+	boldFont, err := truetype.Parse(gomedium.TTF)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ImageBuilder{
+		StyleParams:  params,
+		SizeParams:   sizeParams,
+		fontTitle:    truetype.NewFace(boldFont, &truetype.Options{Size: params.FontTitleSize}),
+		fontSubtitle: truetype.NewFace(regularFont, &truetype.Options{Size: params.FontSubtitleSize}),
+		fontMessage:  truetype.NewFace(regularFont, &truetype.Options{Size: params.FontMessageSize}),
+	}, nil
 }
 
 func (b *ImageBuilder) BuildImage(qr *image.Image, data ImageData) ([]byte, error) {
@@ -62,22 +90,24 @@ func (b *ImageBuilder) encodeImage(image *image.Image) ([]byte, error) {
 func (b *ImageBuilder) generateBody(image image.Image) image.Image {
 	width := (image).Bounds().Dx()
 	height := (image).Bounds().Dy()
-	paddingComponent := b.generateBackground(width+b.SizeParams.QrPadding*2, height+b.SizeParams.QrPadding*2)
+	paddingComponent := b.generateBackground(width+b.SizeParams.QrPadding*2, height+b.SizeParams.QrPadding)
 
-	paddingComponent.DrawImage(image, b.SizeParams.QrPadding, b.SizeParams.QrPadding)
+	paddingComponent.DrawImage(image, b.SizeParams.QrPadding, b.SizeParams.QrPadding/2)
 	return paddingComponent.Image()
 }
 
 func (b *ImageBuilder) generateHeader(title string, subtitle string, width int) *image.Image {
 
-	headerComponent := b.generateBackground(width, 64)
+	headerComponent := b.generateBackground(width, 96)
 
 	headerComponent.SetHexColor(b.StyleParams.ColorTitle)
+	headerComponent.SetFontFace(b.fontTitle)
 	b.writeText(headerComponent, title, width, 20)
 
 	if subtitle != "" {
 		headerComponent.SetHexColor(b.StyleParams.ColorSubtitle)
-		b.writeText(headerComponent, subtitle, width, 40)
+		headerComponent.SetFontFace(b.fontSubtitle)
+		b.writeText(headerComponent, subtitle, width, 56)
 	}
 
 	headerImage := headerComponent.Image()
@@ -88,6 +118,8 @@ func (b *ImageBuilder) generateHeader(title string, subtitle string, width int) 
 func (b *ImageBuilder) generateFooter(message string, width int) *image.Image {
 	footerComponent := b.generateBackground(width, 64)
 	footerComponent.SetHexColor(b.StyleParams.ColorMessage)
+	footerComponent.SetFontFace(b.fontMessage)
+
 	b.writeText(footerComponent, message, width, 20)
 	footerImage := footerComponent.Image()
 	return &footerImage
