@@ -12,6 +12,12 @@ type Config struct {
 	ImageSizeParams image_builder.ImageSizeParams
 }
 
+type BuildInfo struct {
+	Version   string
+	Commit    string
+	BuildDate string
+}
+
 func LoadConfig() (*Config, error) {
 
 	imageParams := image_builder.StyleImageParams{

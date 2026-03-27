@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"net/http"
+	"time"
 
 	image_builder "qr-generator/internal/image"
 	"qr-generator/internal/qr"
@@ -17,19 +18,19 @@ type GenerateQrBody struct {
 	Message  string `json:"message"`
 }
 
-type Handler struct {
+type QRHandler struct {
 	qrBuilder    *qr.QRBuilder
 	imageBuilder *image_builder.ImageBuilder
 }
 
-func NewHandler(qrBuilder *qr.QRBuilder, imageBuilder *image_builder.ImageBuilder) *Handler {
-	return &Handler{
+func NewQrHandler(qrBuilder *qr.QRBuilder, imageBuilder *image_builder.ImageBuilder) *QRHandler {
+	return &QRHandler{
 		qrBuilder:    qrBuilder,
 		imageBuilder: imageBuilder,
 	}
 }
 
-func (h *Handler) GenerateQR(c *gin.Context) {
+func (h *QRHandler) GenerateQR(c *gin.Context) {
 
 	var body GenerateQrBody
 	if bodyErr := c.ShouldBindJSON(&body); bodyErr != nil {
@@ -63,4 +64,31 @@ func (h *Handler) GenerateQR(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "image/png", imageBuffer)
+}
+
+type HealthHandler struct {
+	version   string
+	commit    string
+	buildDate string
+	startTime time.Time
+}
+
+func NewHealthHandler(version string, commit string, buildDate string) *HealthHandler {
+	return &HealthHandler{
+		version:   version,
+		commit:    commit,
+		buildDate: buildDate,
+		startTime: time.Now(),
+	}
+}
+
+func (h *HealthHandler) Health(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status":    "healthy",
+		"service":   "qr-generator",
+		"version":   h.version,
+		"commit":    h.commit,
+		"buildDate": h.buildDate,
+		"uptime":    time.Since(h.startTime).String(),
+	})
 }
