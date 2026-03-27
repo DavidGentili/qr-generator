@@ -44,12 +44,12 @@ func LoadConfig() (*Config, error) {
 	}
 
 	observabilityParams := ObservabilityParams{
-		MetricsPort:    readEnv("METRICS_PORT", ":9110"),
+		MetricsPort:    ":" + readEnv("METRICS_PORT", "9110"),
 		MetricsEnabled: readEnv("METRICS_ENABLED", "false") == "true",
 	}
 
 	return &Config{
-		Port:                readEnv("PORT", ":8080"),
+		Port:                ":" + readEnv("PORT", "8080"),
 		ImageParams:         imageParams,
 		ImageSizeParams:     imageSizeParams,
 		ObservabilityParams: observabilityParams,
