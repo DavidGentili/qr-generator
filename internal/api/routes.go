@@ -8,10 +8,11 @@ import (
 )
 
 func SetupRouter(qrBuilder *qr.QRBuilder, imageBuilder *image_builder.ImageBuilder) *gin.Engine {
-	router := gin.Default()
+	router := gin.New()
+	group := router.Group("/api")
 	handler := NewHandler(qrBuilder, imageBuilder)
 
-	router.POST("/qr/generate", handler.GenerateQR)
+	group.POST("/qr/generate", handler.GenerateQR)
 
 	return router
 }

@@ -14,8 +14,8 @@ func main() {
 		log.Fatalf("[Main] Error al cargar la configuración: %v", err)
 	}
 
-	qrBuilder := qr.NewQRBuilder()
-	imageBuilder := image_builder.NewImageBuilder(config.ImageParams)
+	qrBuilder := qr.NewQRBuilder(config.ImageSizeParams.QrSize, config.ImageParams.QRColor, config.ImageParams.ColorBackground)
+	imageBuilder := image_builder.NewImageBuilder(config.ImageParams, config.ImageSizeParams)
 
 	router := api.SetupRouter(qrBuilder, imageBuilder)
 	router.Run(config.Port)
