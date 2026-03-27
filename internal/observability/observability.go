@@ -28,10 +28,23 @@ var (
 		},
 		[]string{"method", "path", "status"},
 	)
+	qrGeneratedTotal = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "qr_generated_total",
+			Help: "Total de códigos QR generados correctamente",
+		},
+	)
+	qrGenerationErrorsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "qr_generation_errors_total",
+			Help: "Total de errores durante el flujo de generación QR",
+		},
+		[]string{"stage"},
+	)
 )
 
 func init() {
-	prometheus.MustRegister(httpRequestsTotal, httpRequestDurationSeconds)
+	prometheus.MustRegister(httpRequestsTotal, httpRequestDurationSeconds, qrGeneratedTotal, qrGenerationErrorsTotal)
 }
 
 func HTTPMetricsMiddleware() gin.HandlerFunc {
@@ -66,4 +79,12 @@ func StartMetricsServer(observabilityParams config.ObservabilityParams) {
 			log.Printf("[Observability] Error en servidor de métricas: %v", err)
 		}
 	}()
+}
+
+func IncQRGenerated() {
+	qrGeneratedTotal.Inc()
+}
+
+func IncQRGenerationError(stage string) {
+	qrGenerationErrorsTotal.WithLabelValues(stage).Inc()
 }

@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"net/http"
+	"qr-generator/internal/observability"
 	"time"
 
 	image_builder "qr-generator/internal/image"
@@ -35,6 +36,7 @@ func (h *QRHandler) GenerateQR(c *gin.Context) {
 	var body GenerateQrBody
 	if bodyErr := c.ShouldBindJSON(&body); bodyErr != nil {
 		log.Printf("[Handler] Error binding body: %v", bodyErr)
+		observability.IncQRGenerationError("body_validation")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Error binding body",
 		})
@@ -44,6 +46,7 @@ func (h *QRHandler) GenerateQR(c *gin.Context) {
 	qrImage, qrError := h.qrBuilder.GenerateQR(body.Link)
 	if qrError != nil {
 		log.Printf("[Handler] Error generating QR: %v", qrError)
+		observability.IncQRGenerationError("qr_generation")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Error generating QR",
 		})
@@ -57,12 +60,14 @@ func (h *QRHandler) GenerateQR(c *gin.Context) {
 	})
 	if imageError != nil {
 		log.Printf("[Handler] Error building image: %v", imageError)
+		observability.IncQRGenerationError("image_composition")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Error building image",
 		})
 		return
 	}
 
+	observability.IncQRGenerated()
 	c.Data(http.StatusOK, "image/png", imageBuffer)
 }
 
