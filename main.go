@@ -5,6 +5,7 @@ import (
 	"qr-generator/config"
 	"qr-generator/internal/api"
 	image_builder "qr-generator/internal/image"
+	"qr-generator/internal/observability"
 	"qr-generator/internal/qr"
 )
 
@@ -26,6 +27,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("[Main] Error al inicializar el image builder: %v", err)
 	}
+
+	observability.StartMetricsServer(configData.ObservabilityParams)
 
 	router := api.SetupRouter(buildInfo, qrBuilder, imageBuilder)
 	router.Run(configData.Port)

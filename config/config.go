@@ -7,15 +7,21 @@ import (
 )
 
 type Config struct {
-	Port            string
-	ImageParams     image_builder.StyleImageParams
-	ImageSizeParams image_builder.ImageSizeParams
+	Port                string
+	ImageParams         image_builder.StyleImageParams
+	ImageSizeParams     image_builder.ImageSizeParams
+	ObservabilityParams ObservabilityParams
 }
 
 type BuildInfo struct {
 	Version   string
 	Commit    string
 	BuildDate string
+}
+
+type ObservabilityParams struct {
+	MetricsPort    string
+	MetricsEnabled bool
 }
 
 func LoadConfig() (*Config, error) {
@@ -37,10 +43,16 @@ func LoadConfig() (*Config, error) {
 		QrPadding: readEnvInt("QR_PADDING", 32),
 	}
 
+	observabilityParams := ObservabilityParams{
+		MetricsPort:    readEnv("METRICS_PORT", ":9110"),
+		MetricsEnabled: readEnv("METRICS_ENABLED", "false") == "true",
+	}
+
 	return &Config{
-		Port:            readEnv("PORT", ":8080"),
-		ImageParams:     imageParams,
-		ImageSizeParams: imageSizeParams,
+		Port:                readEnv("PORT", ":8080"),
+		ImageParams:         imageParams,
+		ImageSizeParams:     imageSizeParams,
+		ObservabilityParams: observabilityParams,
 	}, nil
 }
 
